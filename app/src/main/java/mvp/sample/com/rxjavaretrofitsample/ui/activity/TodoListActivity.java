@@ -11,10 +11,7 @@ import android.widget.ProgressBar;
 
 import java.util.List;
 
-import io.reactivex.Observable;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import mvp.sample.com.rxjavaretrofitsample.R;
 import mvp.sample.com.rxjavaretrofitsample.base.AbstractObserver;
@@ -88,8 +85,9 @@ public class TodoListActivity extends AppCompatActivity {
     public void retry(View view) {
         fetchData();
     }
-    //Anonymous Classes
 
+
+    //Anonymous Classes
     private AbstractObserver<List<TodoModel>> subscriber = new AbstractObserver<List<TodoModel>>() {
         @Override
         public void onNext(List<TodoModel> value) {

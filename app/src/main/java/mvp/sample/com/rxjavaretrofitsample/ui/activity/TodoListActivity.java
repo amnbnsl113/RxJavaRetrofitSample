@@ -12,6 +12,7 @@ import android.widget.ProgressBar;
 import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 import mvp.sample.com.rxjavaretrofitsample.R;
 import mvp.sample.com.rxjavaretrofitsample.base.AbstractObserver;
@@ -29,6 +30,7 @@ public class TodoListActivity extends AppCompatActivity {
     private TodoListAdapter todoAdapter;
     private NetworkInteraction networkInteraction;
 
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     private void showError(String errorMsg) {
         todoList.setVisibility(View.GONE);
@@ -60,10 +62,10 @@ public class TodoListActivity extends AppCompatActivity {
     private void fetchData() {
         showProgress();
 
-        networkInteraction.getPosts()
+        compositeDisposable.add(networkInteraction.getPosts()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(subscriber);
+                .subscribeWith(getRequestSubscriber()));
 
     }
 
@@ -86,22 +88,30 @@ public class TodoListActivity extends AppCompatActivity {
         fetchData();
     }
 
-
-    //Anonymous Classes
-    private AbstractObserver<List<TodoModel>> subscriber = new AbstractObserver<List<TodoModel>>() {
-        @Override
-        public void onNext(List<TodoModel> value) {
-
-            hideProgress();
-            todoAdapter.setData(value);
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (compositeDisposable != null && !compositeDisposable.isDisposed()) {
+            compositeDisposable.dispose();
         }
+    }
 
-        @Override
-        public void onError(Throwable e) {
-            Log.e("pass", e.getMessage(), e);
-            showError("");
-        }
-    };
+    private AbstractObserver<List<TodoModel>> getRequestSubscriber() {
+        return new AbstractObserver<List<TodoModel>>() {
+            @Override
+            public void onNext(List<TodoModel> value) {
+
+                hideProgress();
+                todoAdapter.setData(value);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e("pass", e.getMessage(), e);
+                showError("");
+            }
+        };
+    }
 
 
 }
